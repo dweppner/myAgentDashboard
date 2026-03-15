@@ -6,7 +6,15 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "jsdom",
+    environmentMatchGlobs: [["src/lib/**", "node"]],
     globals: true,
+    testTimeout: 30000,
+    pool: "vmForks",
+    poolOptions: {
+      vmForks: {
+        singleFork: true,
+      },
+    },
     setupFiles: ["./src/test/setup.ts"],
     coverage: {
       provider: "v8",
@@ -30,6 +38,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "next/link": path.resolve(__dirname, "./src/test/mocks/next-link.tsx"),
     },
   },
 });

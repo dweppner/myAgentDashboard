@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { ThemeProvider, useTheme } from "../ThemeProvider";
 
 function ThemeTestConsumer() {
@@ -27,13 +27,15 @@ describe("ThemeProvider", () => {
     expect(screen.getByTestId("theme-value")).toHaveTextContent("dark");
   });
 
-  it("applies dark class to documentElement by default", () => {
+  it("applies dark class to documentElement by default", async () => {
     render(
       <ThemeProvider>
         <ThemeTestConsumer />
       </ThemeProvider>
     );
-    expect(document.documentElement.classList.contains("dark")).toBe(true);
+    await waitFor(() => {
+      expect(document.documentElement.classList.contains("dark")).toBe(true);
+    });
   });
 
   it("restores light theme from localStorage", () => {
@@ -46,15 +48,17 @@ describe("ThemeProvider", () => {
     expect(screen.getByTestId("theme-value")).toHaveTextContent("light");
   });
 
-  it("toggles from dark to light", () => {
+  it("toggles from dark to light", async () => {
     render(
       <ThemeProvider>
         <ThemeTestConsumer />
       </ThemeProvider>
     );
     fireEvent.click(screen.getByRole("button", { name: /toggle/i }));
-    expect(screen.getByTestId("theme-value")).toHaveTextContent("light");
-    expect(document.documentElement.classList.contains("dark")).toBe(false);
+    await waitFor(() => {
+      expect(screen.getByTestId("theme-value")).toHaveTextContent("light");
+      expect(document.documentElement.classList.contains("dark")).toBe(false);
+    });
   });
 
   it("persists theme to localStorage on toggle", () => {
@@ -67,7 +71,7 @@ describe("ThemeProvider", () => {
     expect(localStorage.getItem("theme")).toBe("light");
   });
 
-  it("toggles from light back to dark", () => {
+  it("toggles from light back to dark", async () => {
     localStorage.setItem("theme", "light");
     render(
       <ThemeProvider>
@@ -75,7 +79,9 @@ describe("ThemeProvider", () => {
       </ThemeProvider>
     );
     fireEvent.click(screen.getByRole("button", { name: /toggle/i }));
-    expect(screen.getByTestId("theme-value")).toHaveTextContent("dark");
-    expect(document.documentElement.classList.contains("dark")).toBe(true);
+    await waitFor(() => {
+      expect(screen.getByTestId("theme-value")).toHaveTextContent("dark");
+      expect(document.documentElement.classList.contains("dark")).toBe(true);
+    });
   });
 });
