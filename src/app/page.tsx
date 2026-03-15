@@ -1,3 +1,4 @@
+import { AppShell } from "@/components/AppShell";
 import { createClient } from '@/lib/supabase/server'
 import { AgentGrid } from '@/components/agents/agent-grid'
 
@@ -16,10 +17,8 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <AgentGrid initialAgents={agents ?? []} />
-      </div>
-    </main>
+    <AppShell pageTitle="Dashboard">
+      <AgentGrid initialAgents={agents ?? []} />
+    </AppShell>
   )
 }
