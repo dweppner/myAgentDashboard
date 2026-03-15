@@ -10,11 +10,7 @@ export default defineConfig({
     globals: true,
     testTimeout: 30000,
     pool: "vmForks",
-    poolOptions: {
-      vmForks: {
-        singleFork: true,
-      },
-    },
+    singleFork: true,
     setupFiles: ["./src/test/setup.ts"],
     coverage: {
       provider: "v8",
@@ -36,9 +32,19 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "next/link": path.resolve(__dirname, "./src/test/mocks/next-link.tsx"),
-    },
+    alias: [
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
+      {
+        find: /^next\/link$/,
+        replacement: path.resolve(__dirname, "./src/test/mocks/next-link.tsx"),
+      },
+      {
+        find: /^next\/navigation$/,
+        replacement: path.resolve(
+          __dirname,
+          "./src/test/mocks/next-navigation.ts"
+        ),
+      },
+    ],
   },
 });
