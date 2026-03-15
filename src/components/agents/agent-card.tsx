@@ -1,13 +1,9 @@
 'use client'
 
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { getStatusColor, getStatusDotColor, getStatusLabel, truncateTask } from '@/lib/agent-utils'
+import { getStatusColor, getStatusDotColor, getStatusLabel, getTypeLabel, truncateTask } from '@/lib/agent-utils'
 import type { Agent } from '@/types/agent'
-
-const TYPE_LABELS: Record<string, string> = {
-  openclaw: 'OpenClaw',
-  'claude-code': 'Claude Code',
-}
 
 const TASK_MAX_LENGTH = 60
 
@@ -20,11 +16,14 @@ export function AgentCard({ agent }: AgentCardProps) {
   const dotColor = getStatusDotColor(agent.status)
   const statusLabel = getStatusLabel(agent.status)
   const taskDisplay = truncateTask(agent.current_task, TASK_MAX_LENGTH)
-  const typeLabel = TYPE_LABELS[agent.type] ?? agent.type
+  const typeLabel = getTypeLabel(agent.type)
   const lastActive = new Date(agent.updated_at).toLocaleString()
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col gap-3">
+    <Link
+      href={`/agents/${agent.id}`}
+      className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col gap-3 hover:border-primary/50 transition-colors"
+    >
       {/* Header: avatar + name + type badge */}
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 size-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
@@ -86,6 +85,6 @@ export function AgentCard({ agent }: AgentCardProps) {
       <p className="text-xs text-muted-foreground/50 mt-auto">
         Last active: {lastActive}
       </p>
-    </div>
+    </Link>
   )
 }
