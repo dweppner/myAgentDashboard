@@ -6,7 +6,11 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "jsdom",
+    environmentMatchGlobs: [["src/lib/**", "node"]],
     globals: true,
+    testTimeout: 30000,
+    pool: "vmForks",
+    singleFork: true,
     setupFiles: ["./src/test/setup.ts"],
     coverage: {
       provider: "v8",
@@ -28,8 +32,19 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    alias: [
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
+      {
+        find: /^next\/link$/,
+        replacement: path.resolve(__dirname, "./src/test/mocks/next-link.tsx"),
+      },
+      {
+        find: /^next\/navigation$/,
+        replacement: path.resolve(
+          __dirname,
+          "./src/test/mocks/next-navigation.ts"
+        ),
+      },
+    ],
   },
 });
