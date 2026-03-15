@@ -76,8 +76,8 @@ describe('Database types — agent_activity_logs table', () => {
   })
 
   it('Row has nullable metadata jsonb field', () => {
-    // metadata is a JSON object — can be null
-    type _Test = AgentActivityLogRow['metadata'] extends object | null ? true : never
+    // metadata is Json | null — Json can be string, number, boolean, object, array, or null
+    type _Test = AgentActivityLogRow['metadata'] extends import('../database.types').Json | null ? true : never
     const check: true = true as _Test
     expect(check).toBe(true)
   })

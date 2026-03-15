@@ -6,6 +6,10 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+export type AgentType = 'openclaw' | 'claude-code'
+export type AgentStatus = 'active' | 'idle' | 'offline'
+export type ProjectStatus = 'active' | 'inactive'
+
 export interface Database {
   public: {
     Tables: {
@@ -13,13 +17,13 @@ export interface Database {
         Row: {
           id: string
           name: string
-          type: string
+          type: AgentType
           role: string
           description: string
           systems: string[]
           interaction_guide: string
           avatar_url: string | null
-          status: string
+          status: AgentStatus
           current_task: string | null
           created_at: string
           updated_at: string
@@ -27,13 +31,13 @@ export interface Database {
         Insert: {
           id?: string
           name: string
-          type: string
+          type: AgentType
           role: string
           description: string
           systems?: string[]
           interaction_guide?: string
           avatar_url?: string | null
-          status?: string
+          status?: AgentStatus
           current_task?: string | null
           created_at?: string
           updated_at?: string
@@ -41,13 +45,13 @@ export interface Database {
         Update: {
           id?: string
           name?: string
-          type?: string
+          type?: AgentType
           role?: string
           description?: string
           systems?: string[]
           interaction_guide?: string
           avatar_url?: string | null
-          status?: string
+          status?: AgentStatus
           current_task?: string | null
           updated_at?: string
         }
@@ -84,7 +88,7 @@ export interface Database {
           name: string
           repo: string
           stack: string
-          status: string
+          status: ProjectStatus
           hosting: string
           production_url: string | null
           staging_url: string | null
@@ -103,7 +107,7 @@ export interface Database {
           name: string
           repo: string
           stack: string
-          status?: string
+          status?: ProjectStatus
           hosting: string
           production_url?: string | null
           staging_url?: string | null
@@ -122,7 +126,7 @@ export interface Database {
           name?: string
           repo?: string
           stack?: string
-          status?: string
+          status?: ProjectStatus
           hosting?: string
           production_url?: string | null
           staging_url?: string | null

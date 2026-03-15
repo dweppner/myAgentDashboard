@@ -77,7 +77,7 @@ VALUES
     'active',
     'vercel',
     'https://my-agent-dashboard-sepia.vercel.app',
-    'https://my-agent-dashboard-sepia.vercel.app',
+    NULL,
     'C0ALGJLPF8T'
   )
 ON CONFLICT (project_id) DO UPDATE SET

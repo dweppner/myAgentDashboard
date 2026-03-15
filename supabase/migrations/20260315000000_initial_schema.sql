@@ -27,6 +27,15 @@ CREATE POLICY "anon_read_agents"
   TO anon, authenticated
   USING (true);
 
+-- Writes are performed by backend workers using the service_role key only.
+-- The anon and authenticated roles are intentionally read-only.
+CREATE POLICY "service_role_write_agents"
+  ON public.agents
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
 -- ============================================================
 -- agent_activity_logs table
 -- ============================================================
@@ -50,6 +59,13 @@ CREATE POLICY "anon_read_agent_activity_logs"
   TO anon, authenticated
   USING (true);
 
+CREATE POLICY "service_role_write_agent_activity_logs"
+  ON public.agent_activity_logs
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
 -- ============================================================
 -- projects table
 -- ============================================================
@@ -64,11 +80,11 @@ CREATE TABLE IF NOT EXISTS public.projects (
   production_url     text,
   staging_url        text,
   slack_channel_id   text NOT NULL DEFAULT '',
-  open_issues_count  int NOT NULL DEFAULT 0,
-  p0_count           int NOT NULL DEFAULT 0,
-  p1_count           int NOT NULL DEFAULT 0,
-  p2_count           int NOT NULL DEFAULT 0,
-  p3_count           int NOT NULL DEFAULT 0,
+  open_issues_count  int NOT NULL DEFAULT 0 CHECK (open_issues_count >= 0),
+  p0_count           int NOT NULL DEFAULT 0 CHECK (p0_count >= 0),
+  p1_count           int NOT NULL DEFAULT 0 CHECK (p1_count >= 0),
+  p2_count           int NOT NULL DEFAULT 0 CHECK (p2_count >= 0),
+  p3_count           int NOT NULL DEFAULT 0 CHECK (p3_count >= 0),
   created_at         timestamptz NOT NULL DEFAULT now(),
   updated_at         timestamptz NOT NULL DEFAULT now()
 );
@@ -80,6 +96,13 @@ CREATE POLICY "anon_read_projects"
   FOR SELECT
   TO anon, authenticated
   USING (true);
+
+CREATE POLICY "service_role_write_projects"
+  ON public.projects
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
 
 -- ============================================================
 -- updated_at trigger helper
