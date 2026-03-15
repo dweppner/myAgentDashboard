@@ -1,5 +1,14 @@
 import type { Agent, AgentStatusSummary } from '@/types/agent'
 
+const TYPE_LABELS: Record<string, string> = {
+  openclaw: 'OpenClaw',
+  'claude-code': 'Claude Code',
+}
+
+export function getTypeLabel(type: string): string {
+  return TYPE_LABELS[type] ?? type
+}
+
 export function getStatusColor(status: string): string {
   switch (status) {
     case 'active':

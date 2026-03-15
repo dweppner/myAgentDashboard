@@ -3,6 +3,7 @@ import {
   getStatusColor,
   getStatusDotColor,
   getStatusLabel,
+  getTypeLabel,
   truncateTask,
   getAgentStatusSummary,
 } from '../agent-utils'
@@ -59,6 +60,20 @@ describe('getStatusLabel', () => {
 
   it('returns capitalized label for unknown status', () => {
     expect(getStatusLabel('busy')).toBe('Busy')
+  })
+})
+
+describe('getTypeLabel', () => {
+  it('returns "Claude Code" for claude-code type', () => {
+    expect(getTypeLabel('claude-code')).toBe('Claude Code')
+  })
+
+  it('returns "OpenClaw" for openclaw type', () => {
+    expect(getTypeLabel('openclaw')).toBe('OpenClaw')
+  })
+
+  it('returns the raw type for unknown types', () => {
+    expect(getTypeLabel('custom-bot')).toBe('custom-bot')
   })
 })
 

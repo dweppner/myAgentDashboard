@@ -8,9 +8,9 @@ export default defineConfig({
     environment: "jsdom",
     environmentMatchGlobs: [["src/lib/**", "node"]],
     globals: true,
-    testTimeout: 30000,
     pool: "vmForks",
     singleFork: true,
+    testTimeout: 30000,
     setupFiles: ["./src/test/setup.ts"],
     coverage: {
       provider: "v8",
