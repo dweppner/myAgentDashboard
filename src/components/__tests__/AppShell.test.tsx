@@ -1,15 +1,31 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AppShell } from "../AppShell";
+import { ThemeProvider } from "../ThemeProvider";
+
+vi.mock("next/link", () => ({
+  default: ({ href, children, ...props }: { href: string; children: React.ReactNode; [key: string]: unknown }) => (
+    <a href={href} {...props}>{children}</a>
+  ),
+}));
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
 }));
 
+function renderWithTheme(ui: React.ReactNode) {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+}
+
 describe("AppShell", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    document.documentElement.className = "";
+  });
+
   it("renders children in the main content area", () => {
-    render(
+    renderWithTheme(
       <AppShell>
         <div data-testid="child-content">Hello</div>
       </AppShell>
@@ -18,7 +34,7 @@ describe("AppShell", () => {
   });
 
   it("renders the sidebar", () => {
-    render(
+    renderWithTheme(
       <AppShell>
         <div>Content</div>
       </AppShell>
@@ -26,9 +42,9 @@ describe("AppShell", () => {
     expect(screen.getByText("Agent Dashboard")).toBeInTheDocument();
   });
 
-  it("renders a header bar", () => {
-    render(
-      <AppShell pageTitle="Dashboard">
+  it("renders a header bar with page title derived from pathname", () => {
+    renderWithTheme(
+      <AppShell>
         <div>Content</div>
       </AppShell>
     );
@@ -37,7 +53,7 @@ describe("AppShell", () => {
   });
 
   it("renders a theme toggle button", () => {
-    render(
+    renderWithTheme(
       <AppShell>
         <div>Content</div>
       </AppShell>
@@ -47,17 +63,20 @@ describe("AppShell", () => {
 });
 
 describe("ThemeToggle", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    document.documentElement.className = "dark";
+  });
+
   it("toggles dark/light mode class on html element", async () => {
     const user = userEvent.setup();
-    // Start with dark mode enabled
-    document.documentElement.classList.add("dark");
-    render(
+    renderWithTheme(
       <AppShell>
         <div>Content</div>
       </AppShell>
     );
     const toggle = screen.getByRole("button", { name: /toggle theme/i });
-    // Initial state: dark is on
+    // Initial state: dark is on (from localStorage default)
     expect(document.documentElement.classList.contains("dark")).toBe(true);
     // Click once → light mode
     await user.click(toggle);
@@ -65,5 +84,17 @@ describe("ThemeToggle", () => {
     // Click again → dark mode restored
     await user.click(toggle);
     expect(document.documentElement.classList.contains("dark")).toBe(true);
+  });
+
+  it("persists theme preference to localStorage", async () => {
+    const user = userEvent.setup();
+    renderWithTheme(
+      <AppShell>
+        <div>Content</div>
+      </AppShell>
+    );
+    const toggle = screen.getByRole("button", { name: /toggle theme/i });
+    await user.click(toggle);
+    expect(localStorage.getItem("theme")).toBe("light");
   });
 });

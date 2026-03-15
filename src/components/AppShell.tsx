@@ -1,33 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Sun, Moon } from "lucide-react";
 import { Sidebar } from "./Sidebar";
+import { useTheme } from "./ThemeProvider";
 import { cn } from "@/lib/utils";
 
-interface AppShellProps {
-  children: React.ReactNode;
-  pageTitle?: string;
-}
+const PAGE_TITLES: Record<string, string> = {
+  "/": "Dashboard",
+  "/projects": "Projects",
+  "/activity": "Activity",
+};
 
-function getInitialDark(): boolean {
-  if (typeof document === "undefined") return true;
-  return document.documentElement.classList.contains("dark");
-}
-
-export function AppShell({ children, pageTitle }: AppShellProps) {
-  const [isDark, setIsDark] = useState(getInitialDark);
-
-  // Sync dark class on the html element whenever isDark changes
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [isDark]);
-
-  const toggleTheme = () => setIsDark((prev) => !prev);
+export function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
+  const pageTitle = PAGE_TITLES[pathname] ?? "Agent Dashboard";
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
@@ -51,7 +39,11 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
             aria-label="Toggle theme"
             className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-foreground transition-colors hover:bg-accent"
           >
-            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
           </button>
         </header>
 

@@ -1,4 +1,3 @@
-import { AppShell } from "@/components/AppShell";
 import { createClient } from '@/lib/supabase/server'
 import { AgentGrid } from '@/components/agents/agent-grid'
 
@@ -16,9 +15,5 @@ export default async function Home() {
     console.error('Failed to fetch agents:', error.message)
   }
 
-  return (
-    <AppShell pageTitle="Dashboard">
-      <AgentGrid initialAgents={agents ?? []} />
-    </AppShell>
-  )
+  return <AgentGrid initialAgents={agents ?? []} />
 }
