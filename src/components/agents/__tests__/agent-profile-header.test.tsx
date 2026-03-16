@@ -1,7 +1,14 @@
 import { describe, it, expect } from 'vitest'
+import { createElement } from 'react'
+import type React from 'react'
 import { render, screen } from '@testing-library/react'
 import { AgentProfileHeader } from '../agent-profile-header'
 import type { Agent } from '@/types/agent'
+
+vi.mock('next/link', () => ({
+  default: ({ href, children, ...props }: Record<string, unknown>) =>
+    createElement('a', { href, ...props }, children as React.ReactNode),
+}))
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/agents/agent-1',

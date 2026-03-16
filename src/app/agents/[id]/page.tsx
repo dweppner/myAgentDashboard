@@ -26,11 +26,12 @@ export default async function AgentProfilePage({ params }: PageProps) {
       .limit(200),
   ])
 
-  if (agentResult.error || !agentResult.data) {
+  const agentData = agentResult.data
+  if (agentResult.error || !agentData) {
     notFound()
   }
 
-  const agent = agentResult.data
+  const agent = agentData
   const allAgents = allAgentsResult.data ?? []
   const logs = logsResult.data ?? []
 

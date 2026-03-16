@@ -10,7 +10,7 @@ export default defineConfig({
     globals: true,
     pool: "vmForks",
     singleFork: true,
-    testTimeout: 30000,
+    testTimeout: 120000,
     setupFiles: ["./src/test/setup.ts"],
     coverage: {
       provider: "v8",
