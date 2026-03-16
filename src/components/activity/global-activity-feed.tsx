@@ -107,6 +107,7 @@ export function GlobalActivityFeed({ initialLogs, agents }: GlobalActivityFeedPr
                 key={type}
                 onClick={() => handleEventTypeChange(type)}
                 aria-pressed={eventTypeFilter === type}
+                aria-label={type === 'all' ? 'All' : formatEventType(type)}
                 className={cn(
                   'rounded-full px-3 py-1 text-xs font-medium transition-colors',
                   eventTypeFilter === type
@@ -114,7 +115,7 @@ export function GlobalActivityFeed({ initialLogs, agents }: GlobalActivityFeedPr
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                 )}
               >
-                {type === 'all' ? 'All' : formatEventType(type)}
+                {type === 'all' ? 'All' : type.replace(/_/g, ' ')}
               </button>
             ))}
           </div>
