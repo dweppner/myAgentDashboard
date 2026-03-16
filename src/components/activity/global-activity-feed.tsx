@@ -36,23 +36,11 @@ interface GlobalActivityFeedProps {
 }
 
 export function GlobalActivityFeed({ initialLogs, agents }: GlobalActivityFeedProps) {
-  const [logs, setLogs] = useState<GlobalActivityLog[]>(initialLogs)
   const [agentFilter, setAgentFilter] = useState('all')
   const [eventTypeFilter, setEventTypeFilter] = useState('all')
   const [dateRangeFilter, setDateRangeFilter] = useState<DateRangeFilter>('all')
   const [page, setPage] = useState(1)
   const router = useRouter()
-
-  // Merge new logs when server component re-renders with fresh data
-  useEffect(() => {
-    if (initialLogs.length === 0) return
-    setLogs((prev) => {
-      const existingIds = new Set(prev.map((l) => l.id))
-      const newLogs = initialLogs.filter((l) => !existingIds.has(l.id))
-      if (newLogs.length === 0) return prev
-      return [...newLogs, ...prev]
-    })
-  }, [initialLogs])
 
   // Auto-refresh every 30 seconds to pick up new activity
   useEffect(() => {
@@ -62,7 +50,7 @@ export function GlobalActivityFeed({ initialLogs, agents }: GlobalActivityFeedPr
     return () => clearInterval(interval)
   }, [router])
 
-  const filtered = filterGlobalLogs(logs, {
+  const filtered = filterGlobalLogs(initialLogs, {
     agentId: agentFilter,
     eventType: eventTypeFilter,
     dateRange: dateRangeFilter,
