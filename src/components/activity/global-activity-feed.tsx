@@ -114,7 +114,7 @@ export function GlobalActivityFeed({ initialLogs, agents }: GlobalActivityFeedPr
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                 )}
               >
-                {type === 'all' ? 'All' : formatEventType(type).toLowerCase()}
+                {type === 'all' ? 'All' : formatEventType(type)}
               </button>
             ))}
           </div>

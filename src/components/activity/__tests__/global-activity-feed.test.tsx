@@ -51,9 +51,10 @@ describe('GlobalActivityFeed', () => {
     expect(screen.getByText('Deployed to Vercel')).toBeInTheDocument()
   })
 
-  it('renders event type badge', () => {
+  it('renders event type badge in the log entry', () => {
     render(<GlobalActivityFeed initialLogs={[makeLog({ event_type: 'task_completed' })]} agents={AGENTS} />)
-    expect(screen.getByText('Task Completed')).toBeInTheDocument()
+    const listItem = screen.getByRole('listitem')
+    expect(listItem).toHaveTextContent('Task Completed')
   })
 
   it('renders agent name linked to profile', () => {
