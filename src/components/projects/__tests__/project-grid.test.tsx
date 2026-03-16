@@ -83,4 +83,14 @@ describe('ProjectGrid', () => {
     expect(cards[1].textContent).toBe('Beta')
     expect(cards[2].textContent).toBe('Gamma')
   })
+
+  it('filters by stack', async () => {
+    const user = userEvent.setup()
+    render(<ProjectGrid projects={projects} />)
+    const stackSelect = screen.getByRole('combobox', { name: /stack/i })
+    await user.selectOptions(stackSelect, 'ios')
+    expect(screen.getByText('Beta')).toBeInTheDocument()
+    expect(screen.getByText('Gamma')).toBeInTheDocument()
+    expect(screen.queryByText('Alpha')).not.toBeInTheDocument()
+  })
 })

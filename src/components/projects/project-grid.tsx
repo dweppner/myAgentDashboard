@@ -25,7 +25,7 @@ const STATUS_FILTERS = [
 
 export function ProjectGrid({ projects }: ProjectGridProps) {
   const [statusFilter, setStatusFilter] = useState('all')
-  const [stackFilter] = useState('all')
+  const [stackFilter, setStackFilter] = useState('all')
   const [sortKey, setSortKey] = useState<SortKey>('status')
 
   const summary = getProjectSummary(projects)
@@ -96,11 +96,24 @@ export function ProjectGrid({ projects }: ProjectGridProps) {
         </label>
       </div>
 
-      {/* Stack filter info (shows active stack filter) */}
+      {/* Stack filter */}
       {uniqueStacks.length > 1 && (
-        <div className="text-xs text-muted-foreground/60">
-          Stacks: {uniqueStacks.join(', ')}
-        </div>
+        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span>Stack</span>
+          <select
+            aria-label="Filter by stack"
+            value={stackFilter}
+            onChange={(e) => setStackFilter(e.target.value)}
+            className="rounded border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="all">All</option>
+            {uniqueStacks.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </label>
       )}
 
       {/* Grid */}
