@@ -1,13 +1,17 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { formatEventType, getEventTypeBadgeColor } from '@/lib/activity-utils'
-import type { GlobalActivityLog } from '@/lib/global-activity-utils'
-import type { Agent } from '@/types/agent'
+import {
+  filterGlobalLogs,
+  type GlobalActivityLog,
+  type DateRangeFilter,
+} from '@/lib/global-activity-utils'
 
 const PAGE_SIZE = 20
-const REFRESH_INTERVAL_MS = 30_000
 
 const EVENT_TYPE_OPTIONS = [
   'all',
@@ -18,139 +22,139 @@ const EVENT_TYPE_OPTIONS = [
   'deployment',
 ]
 
+const DATE_RANGE_OPTIONS: { value: DateRangeFilter; label: string }[] = [
+  { value: 'all', label: 'All time' },
+  { value: 'today', label: 'Today' },
+  { value: '7d', label: '7 days' },
+  { value: '30d', label: '30 days' },
+]
+
+interface AgentOption {
+  id: string
+  name: string
+}
+
 interface GlobalActivityFeedProps {
   initialLogs: GlobalActivityLog[]
-  agents: Agent[]
+  agents: AgentOption[]
 }
 
 export function GlobalActivityFeed({ initialLogs, agents }: GlobalActivityFeedProps) {
-  const [logs, setLogs] = useState<GlobalActivityLog[]>(initialLogs)
-  const [filterAgent, setFilterAgent] = useState<string>('all')
-  const [filterType, setFilterType] = useState<string>('all')
-  const [filterDateFrom, setFilterDateFrom] = useState<string>('')
-  const [filterDateTo, setFilterDateTo] = useState<string>('')
+  const [agentFilter, setAgentFilter] = useState('all')
+  const [eventTypeFilter, setEventTypeFilter] = useState('all')
+  const [dateRangeFilter, setDateRangeFilter] = useState<DateRangeFilter>('all')
   const [page, setPage] = useState(1)
+  const router = useRouter()
 
-  const applyFilters = useCallback(
-    (source: GlobalActivityLog[]) => {
-      return source.filter((log) => {
-        if (filterAgent !== 'all' && log.agent_id !== filterAgent) return false
-        if (filterType !== 'all' && log.event_type !== filterType) return false
-        if (filterDateFrom) {
-          const from = new Date(filterDateFrom)
-          if (new Date(log.created_at) < from) return false
-        }
-        if (filterDateTo) {
-          const to = new Date(filterDateTo)
-          to.setHours(23, 59, 59, 999)
-          if (new Date(log.created_at) > to) return false
-        }
-        return true
-      })
-    },
-    [filterAgent, filterType, filterDateFrom, filterDateTo]
+  // Auto-refresh every 30 seconds to pick up new activity
+  useEffect(() => {
+    const interval = setInterval(() => {
+      router.refresh()
+    }, 30_000)
+    return () => clearInterval(interval)
+  }, [router])
+
+  const filtered = useMemo(
+    () => filterGlobalLogs(initialLogs, {
+      agentId: agentFilter,
+      eventType: eventTypeFilter,
+      dateRange: dateRangeFilter,
+    }),
+    [initialLogs, agentFilter, eventTypeFilter, dateRangeFilter]
   )
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch('/api/activity')
-        if (!res.ok) return
-        const data: GlobalActivityLog[] = await res.json()
-        setLogs(data)
-      } catch {
-        // silently ignore refresh errors
-      }
-    }, REFRESH_INTERVAL_MS)
-    return () => clearInterval(interval)
-  }, [])
+  const visible = filtered.slice(0, page * PAGE_SIZE)
+  const hasMore = visible.length < filtered.length
 
-  function resetPage() {
+  function handleAgentChange(agentId: string) {
+    setAgentFilter(agentId)
     setPage(1)
   }
 
-  const filtered = applyFilters(logs)
-  const visible = filtered.slice(0, page * PAGE_SIZE)
-  const hasMore = visible.length < filtered.length
+  function handleEventTypeChange(type: string) {
+    setEventTypeFilter(type)
+    setPage(1)
+  }
+
+  function handleDateRangeChange(range: DateRangeFilter) {
+    setDateRangeFilter(range)
+    setPage(1)
+  }
 
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex flex-col gap-3">
-        {/* Event type filter */}
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by event type">
-          {EVENT_TYPE_OPTIONS.map((type) => (
-            <button
-              key={type}
-              onClick={() => {
-                setFilterType(type)
-                resetPage()
-              }}
-              aria-pressed={filterType === type}
-              className={cn(
-                'rounded-full px-3 py-1 text-xs font-medium transition-colors',
-                filterType === type
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              )}
-            >
-              {type === 'all' ? 'All Events' : formatEventType(type)}
-            </button>
-          ))}
-        </div>
-
-        {/* Agent + date filters */}
-        <div className="flex flex-wrap gap-3 items-center">
+      <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4">
+        {/* Agent filter */}
+        <div className="flex items-center gap-2">
+          <label htmlFor="agent-filter" className="text-xs font-medium text-muted-foreground w-14 shrink-0">
+            Agent
+          </label>
           <select
-            value={filterAgent}
-            onChange={(e) => {
-              setFilterAgent(e.target.value)
-              resetPage()
-            }}
-            aria-label="Filter by agent"
+            id="agent-filter"
+            value={agentFilter}
+            onChange={(e) => handleAgentChange(e.target.value)}
             className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
           >
-            <option value="all">All Agents</option>
-            {agents.map((agent) => (
-              <option key={agent.id} value={agent.id}>
-                {agent.name}
+            <option value="all">All agents</option>
+            {agents.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
               </option>
             ))}
           </select>
+        </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-muted-foreground" htmlFor="date-from">
-              From
-            </label>
-            <input
-              id="date-from"
-              type="date"
-              value={filterDateFrom}
-              onChange={(e) => {
-                setFilterDateFrom(e.target.value)
-                resetPage()
-              }}
-              className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
-            />
+        {/* Event type filter */}
+        <div className="flex items-start gap-2">
+          <span className="text-xs font-medium text-muted-foreground w-14 shrink-0 pt-1">Event</span>
+          <div className="flex flex-wrap gap-1" role="group" aria-label="Filter by event type">
+            {EVENT_TYPE_OPTIONS.map((type) => (
+              <button
+                key={type}
+                onClick={() => handleEventTypeChange(type)}
+                aria-pressed={eventTypeFilter === type}
+                aria-label={type === 'all' ? 'All' : formatEventType(type)}
+                className={cn(
+                  'rounded-full px-3 py-1 text-xs font-medium transition-colors',
+                  eventTypeFilter === type
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                )}
+              >
+                {type === 'all' ? 'All' : type.replace(/_/g, ' ')}
+              </button>
+            ))}
           </div>
+        </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-muted-foreground" htmlFor="date-to">
-              To
-            </label>
-            <input
-              id="date-to"
-              type="date"
-              value={filterDateTo}
-              onChange={(e) => {
-                setFilterDateTo(e.target.value)
-                resetPage()
-              }}
-              className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
-            />
+        {/* Date range filter */}
+        <div className="flex items-start gap-2">
+          <span className="text-xs font-medium text-muted-foreground w-14 shrink-0 pt-1">Period</span>
+          <div className="flex flex-wrap gap-1" role="group" aria-label="Filter by date range">
+            {DATE_RANGE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => handleDateRangeChange(opt.value)}
+                aria-pressed={dateRangeFilter === opt.value}
+                className={cn(
+                  'rounded-full px-3 py-1 text-xs font-medium transition-colors',
+                  dateRangeFilter === opt.value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
+
+      {/* Result count */}
+      <p className="text-xs text-muted-foreground">
+        {filtered.length} {filtered.length === 1 ? 'event' : 'events'}
+      </p>
 
       {/* Log entries */}
       {visible.length === 0 ? (
@@ -173,14 +177,14 @@ export function GlobalActivityFeed({ initialLogs, agents }: GlobalActivityFeedPr
                     {formatEventType(log.event_type)}
                   </span>
                   {log.agents && (
-                    <span className="text-xs font-medium text-foreground">
+                    <Link
+                      href={`/agents/${log.agents.id}`}
+                      className="text-xs font-medium text-foreground hover:underline"
+                    >
                       {log.agents.name}
-                    </span>
+                    </Link>
                   )}
-                  <time
-                    dateTime={log.created_at}
-                    className="text-xs text-muted-foreground"
-                  >
+                  <time dateTime={log.created_at} className="text-xs text-muted-foreground">
                     {new Date(log.created_at).toLocaleString()}
                   </time>
                 </div>
