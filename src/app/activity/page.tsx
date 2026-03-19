@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { GlobalActivityFeed } from '@/components/activity/global-activity-feed'
 import type { GlobalActivityLog } from '@/lib/global-activity-utils'
-import type { Agent } from '@/types/agent'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,7 +13,7 @@ export default async function ActivityPage() {
       .select('*, agents(id, name, avatar_url)')
       .order('created_at', { ascending: false })
       .limit(500),
-    supabase.from('agents').select('*').order('name'),
+    supabase.from('agents').select('id, name').order('name'),
   ])
 
   if (logsResult.error) {
@@ -24,8 +23,10 @@ export default async function ActivityPage() {
     console.error('Failed to fetch agents:', agentsResult.error.message)
   }
 
+  // The Supabase SDK does not infer the nested join shape, so we cast to the
+  // extended type that includes the `agents` join field.
   const logs = (logsResult.data ?? []) as GlobalActivityLog[]
-  const agents = (agentsResult.data ?? []) as Agent[]
+  const agents = agentsResult.data ?? []
 
   return (
     <div className="space-y-6">
