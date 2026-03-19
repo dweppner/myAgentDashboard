@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -10,7 +10,6 @@ import {
   type GlobalActivityLog,
   type DateRangeFilter,
 } from '@/lib/global-activity-utils'
-import type { Agent } from '@/types/agent'
 
 const PAGE_SIZE = 20
 
@@ -30,9 +29,14 @@ const DATE_RANGE_OPTIONS: { value: DateRangeFilter; label: string }[] = [
   { value: '30d', label: '30 days' },
 ]
 
+interface AgentOption {
+  id: string
+  name: string
+}
+
 interface GlobalActivityFeedProps {
   initialLogs: GlobalActivityLog[]
-  agents: Agent[]
+  agents: AgentOption[]
 }
 
 export function GlobalActivityFeed({ initialLogs, agents }: GlobalActivityFeedProps) {
@@ -50,11 +54,14 @@ export function GlobalActivityFeed({ initialLogs, agents }: GlobalActivityFeedPr
     return () => clearInterval(interval)
   }, [router])
 
-  const filtered = filterGlobalLogs(initialLogs, {
-    agentId: agentFilter,
-    eventType: eventTypeFilter,
-    dateRange: dateRangeFilter,
-  })
+  const filtered = useMemo(
+    () => filterGlobalLogs(initialLogs, {
+      agentId: agentFilter,
+      eventType: eventTypeFilter,
+      dateRange: dateRangeFilter,
+    }),
+    [initialLogs, agentFilter, eventTypeFilter, dateRangeFilter]
+  )
 
   const visible = filtered.slice(0, page * PAGE_SIZE)
   const hasMore = visible.length < filtered.length
